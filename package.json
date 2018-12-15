@@ -1,0 +1,21 @@
+{
+  "name": "bluebot",
+  "version": "1.0.0",
+  "description": "Bot to manage Red - Discord Bot project",
+  "main": "index.js",
+  "author": "orels1",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "node -r dotenv/config ./wh"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "jsonwebtoken": "8.4.0",
+    "lodash": "^4.17.11",
+    "supports-color": "^5.5.0"
+  },
+  "devDependencies": {
+    "dotenv": "^6.2.0"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "wh/index.js", "use": "@now/node" },
+    { "src": "index.html", "use": "@now/static" }
+  ],
+  "env": {
+    "APP_KEY": "@blue-key"
+  },
+  "public": false,
+  "alias": ["blue.orels.sh"]
+}
