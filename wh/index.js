@@ -1,5 +1,6 @@
 const axios = require('axios');
 const { find, filter, flow } = require('lodash/fp');
+const { pick, mergeWith } = require('lodash');
 const { getJWT, getAppToken } = require('./auth.js');
 const { parseBody, checkConditions } = require('./utils');
 const { flows } = require('./red');
@@ -18,23 +19,30 @@ const runFlow = (data, workflow) =>
         return getAppToken(installation, token, { ghObject, workflow });
       })
       .then(({ authToken }) => {
-        // for PRs or issues
         const issueUrl = ghObject.issue_url || ghObject.url;
-
-        return axios.patch(
-          issueUrl,
-          {
-            ...flow.action
-          },
-          {
-            headers: {
-              Authorization: `token ${authToken}`,
-              Accept: 'application/vnd.github.machine-man-preview+json'
-            }
+        const changingKeys = Object.keys(workflow.action);
+        const merger = (objValue, srcValue) => {
+          if (Array.isArray(objValue)) {
+            return [].concat(objValue, srcValue);
           }
+        };
+        const newData = mergeWith(
+          {},
+          pick(ghObject, changingKeys),
+          workflow.action,
+          merger
         );
+
+        return axios.patch(issueUrl, newData, {
+          headers: {
+            Authorization: `token ${authToken}`,
+            Accept: 'application/vnd.github.machine-man-preview+json'
+          }
+        });
       })
-      .then(r => resolve({ result: r, workflow }))
+      .then(r => {
+        resolve({ result: r, workflow });
+      })
       .catch(e => reject(e));
   });
 
@@ -45,11 +53,11 @@ module.exports = (req, res) => {
       return Promise.resolve(data);
     })
     .then(data => {
+      const installationFlows = flows.find(i => i.id === installation).flows;
       const matchingFlows = flow(
-        find(i => i.id === installation),
         filter(i => i.events.includes(data.action)),
         filter(i => !!data[i.object])
-      )(flows);
+      )(installationFlows);
 
       if (!matchingFlows || !matchingFlows.length) {
         throw new Error(

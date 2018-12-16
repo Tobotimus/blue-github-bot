@@ -23,16 +23,28 @@ exports.parseBody = req =>
 
 exports.checkConditions = (flow, ghObject) =>
   new Promise((resolve, reject) => {
+    const failed = [];
     flow.conditions.forEach((c, i) => {
-      console.log('checking', c);
-      c.includes.forEach(filter => {
-        if (get(ghObject, c.key).includes(filter)) {
-          // resolve on first match
-          return resolve({ flow, ghObject });
+      // includes
+      if (c.includes) {
+        c.includes.forEach(filter => {
+          if (!get(ghObject, c.key).includes(filter)) {
+            // resolve on first fail
+            failed.push(c);
+          }
+        });
+      }
+      // equals
+      if (c.equals) {
+        if (get(ghObject, c.key) !== c.equals) {
+          failed.push(c);
+          return;
         }
-      });
-      if (i === flow.conditions.length - 1) {
-        return reject(new Error('No conditions matched for the flow'));
       }
     });
+    if (failed.length) {
+      return reject(new Error('One or more conditions did not match'));
+    } else {
+      return resolve({ flow, ghObject });
+    }
   });
