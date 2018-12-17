@@ -43,6 +43,7 @@ exports.checkConditions = (flow, ghObject) =>
       }
     });
     if (failed.length) {
+      console.error('Failed Conditions', failed);
       return reject(new Error('One or more conditions did not match'));
     } else {
       return resolve({ flow, ghObject });

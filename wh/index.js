@@ -43,7 +43,7 @@ const runFlow = (data, workflow) =>
       .then(r => {
         resolve({ result: r, workflow });
       })
-      .catch(e => reject(e));
+      .catch(e => resolve({ error: e }));
   });
 
 module.exports = (req, res) => {
@@ -71,8 +71,10 @@ module.exports = (req, res) => {
     })
     .then(r => {
       if (r.length) {
-        r.forEach(({ workflow }) => {
-          console.log('ran flow', workflow.label);
+        r.forEach(({ error, workflow }) => {
+          if (!error) {
+            console.log('ran flow', workflow.label);
+          }
         });
       }
       res.statusCode = 200;
